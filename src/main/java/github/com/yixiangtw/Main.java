@@ -40,13 +40,8 @@ public class Main {
     @SuppressFBWarnings("DMI_CONSTANT_DB_PASSWORD")
     public static void main(String[] args) throws IOException, SQLException {
         Connection connection = DriverManager.getConnection("jdbc:h2:file:///Users/yixiang.liu/IdeaProjects/crawler/news", USERNAME, PASSWORD);
-        while (true) {
-            List<String> linkPool = loadUrlsFromDatabase(connection, "select link from LINKS_TO_BE_PROCESSED");
-            if (linkPool.isEmpty()) {
-                break;
-            }
-            String link = linkPool.remove(linkPool.size() - 1);
-            insertLinkIntoDatabase(connection, "delete from LINKS_TO_BE_PROCESSED where link = ?", link);
+        String link;
+        while ((link = getNextLinkThenDelete(connection)) != null) {
 
             if (isLinkProcessed(connection, link)) {
                 continue;
@@ -58,7 +53,7 @@ public class Main {
                 Document doc = httpGetAndParseHtml(link);
                 parseUrlsFromPageAndStoreIntoDatabase(connection, doc);
                 storeIntoDataBaseIfItisNewsPage(doc);
-                insertLinkIntoDatabase(connection, "insert into LINKS_ALREADY_PROCESSED (link) values(?)", link);
+                updateDatabase(connection, "insert into LINKS_ALREADY_PROCESSED (link) values(?)", link);
             }
         }
 
@@ -67,7 +62,7 @@ public class Main {
     private static void parseUrlsFromPageAndStoreIntoDatabase(Connection connection, Document doc) throws SQLException {
         for (Element aTag : doc.select("a")) {
             String href = aTag.attr("href");
-            insertLinkIntoDatabase(connection, "insert into LINKS_TO_BE_PROCESSED (link) values(?)", href);
+            updateDatabase(connection, "insert into LINKS_TO_BE_PROCESSED (link) values(?)", href);
         }
     }
 
@@ -87,22 +82,28 @@ public class Main {
         return false;
     }
 
-    private static void insertLinkIntoDatabase(Connection connection, String sql, String link) throws SQLException {
+    private static void updateDatabase(Connection connection, String sql, String link) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, link);
             statement.executeUpdate();
         }
     }
 
-    private static List<String> loadUrlsFromDatabase(Connection connection, String sql) throws SQLException {
-        List<String> results = new ArrayList<>();
+    private static String getNextLink(Connection connection, String sql) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                results.add(resultSet.getString(1));
+                return resultSet.getString(1);
             }
         }
-        return results;
+        return null;
+    }
+    private static String getNextLinkThenDelete(Connection connection) throws SQLException {
+        String link = getNextLink(connection, "select link from LINKS_TO_BE_PROCESSED limit 1");
+        if(link != null) {
+            updateDatabase(connection, "delete from LINKS_TO_BE_PROCESSED where link = ?", link);
+        }
+        return link;
     }
 
     private static void storeIntoDataBaseIfItisNewsPage(Document doc) {
