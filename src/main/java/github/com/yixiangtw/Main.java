@@ -14,8 +14,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+
 
 public class Main {
     private static final String USERNAME = "root";
@@ -98,9 +97,10 @@ public class Main {
         }
         return null;
     }
+
     private static String getNextLinkThenDelete(Connection connection) throws SQLException {
         String link = getNextLink(connection, "select link from LINKS_TO_BE_PROCESSED limit 1");
-        if(link != null) {
+        if (link != null) {
             updateDatabase(connection, "delete from LINKS_TO_BE_PROCESSED where link = ?", link);
         }
         return link;
