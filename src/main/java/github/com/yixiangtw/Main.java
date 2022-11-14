@@ -14,6 +14,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.stream.Collectors;
 
 
 public class Main {
@@ -46,12 +47,9 @@ public class Main {
                 continue;
             }
             if (isInterestingLink(link)) {
-                if (link.startsWith("//")) {
-                    link = "https:" + link;
-                }
                 Document doc = httpGetAndParseHtml(link);
                 parseUrlsFromPageAndStoreIntoDatabase(connection, doc);
-                storeIntoDataBaseIfItisNewsPage(doc);
+                storeIntoDataBaseIfItIsNewsPage(connection, doc, link);
                 updateDatabase(connection, "insert into LINKS_ALREADY_PROCESSED (link) values(?)", link);
             }
         }
@@ -61,7 +59,12 @@ public class Main {
     private static void parseUrlsFromPageAndStoreIntoDatabase(Connection connection, Document doc) throws SQLException {
         for (Element aTag : doc.select("a")) {
             String href = aTag.attr("href");
-            updateDatabase(connection, "insert into LINKS_TO_BE_PROCESSED (link) values(?)", href);
+            if (href.startsWith("//")) {
+                href = "https:" + href;
+            }
+            if(!href.toLowerCase().startsWith("javascript")) {
+                updateDatabase(connection, "insert into LINKS_TO_BE_PROCESSED (link) values(?)", href);
+            }
         }
     }
 
@@ -106,11 +109,18 @@ public class Main {
         return link;
     }
 
-    private static void storeIntoDataBaseIfItisNewsPage(Document doc) {
-        Elements articles = doc.select("article");
-        if (!articles.isEmpty()) {
-            for (Element article : articles) {
-                String title = article.child(0).text();
+    private static void storeIntoDataBaseIfItIsNewsPage(Connection connection, Document doc, String link) throws SQLException {
+        Elements articleTags = doc.select("article");
+        if (!articleTags.isEmpty()) {
+            for (Element articleTag : articleTags) {
+                String title = articleTag.child(0).text();
+                String content = articleTag.select("p").stream().map(Element::text).collect(Collectors.joining("\n"));
+                try (PreparedStatement statement = connection.prepareStatement("insert into news(title, content, url, CREATED_TIME, MODIFIED_TIME) values(?,?,?,now(),now())")) {
+                    statement.setString(1, title);
+                    statement.setString(2, content);
+                    statement.setString(3, link);
+                    statement.executeUpdate();
+                }
                 System.out.println(title);
             }
         }
