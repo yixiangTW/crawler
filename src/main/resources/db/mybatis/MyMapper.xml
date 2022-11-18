@@ -10,7 +10,7 @@
         delete from LINKS_TO_BE_PROCESSED where link = #{link}
     </delete>
     <insert id="insertNews" parameterType="github.com.yixiangtw.News">
-        insert into news(title, content, url, CREATED_TIME, MODIFIED_TIME) values(#{title},#{content},#{url},now(),now())
+        insert into NEWS(title, content, url, CREATED_TIME, MODIFIED_TIME) values(#{title},#{content},#{url},now(),now())
     </insert>
     <select id="countLink" parameterType="String" resultType="int">
         select count(LINK) from LINKS_ALREADY_PROCESSED where link = #{link}
@@ -19,12 +19,12 @@
         insert into
         <choose>
             <when test="tableName == 'links_already_processed'">
-                links_already_processed
+                LINKS_ALREADY_PROCESSED
             </when>
             <otherwise>
-                links_to_be_processed
+                LINKS_TO_BE_PROCESSED
             </otherwise>
         </choose>
-        (link) VALUES #{link}
+        (link) VALUES (#{link})
     </insert>
 </mapper>

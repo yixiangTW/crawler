@@ -16,28 +16,32 @@ import java.sql.*;
 import java.util.stream.Collectors;
 
 
-public class Crawler {
+public class Crawler extends Thread {
 
-    private final ClawlerDao dao = new MyBatisCrawlerDao();
+    private ClawlerDao dao;
 
-    public static void main(String[] args) throws SQLException, IOException {
-        new Crawler().run();
+    public Crawler(ClawlerDao dao) {
+        this.dao = dao;
     }
 
-    public void run() throws IOException, SQLException {
+    @Override
+    public void run() {
+        try {
+            String link;
+            while ((link = dao.getNextLinkThenDelete()) != null) {
 
-        String link;
-        while ((link = dao.getNextLinkThenDelete()) != null) {
-
-            if (dao.isLinkProcessed(link)) {
-                continue;
+                if (dao.isLinkProcessed(link)) {
+                    continue;
+                }
+                if (isInterestingLink(link)) {
+                    Document doc = httpGetAndParseHtml(link);
+                    parseUrlsFromPageAndStoreIntoDatabase(doc);
+                    storeIntoDataBaseIfItIsNewsPage(doc, link);
+                    dao.insertProcessedLink(link);
+                }
             }
-            if (isInterestingLink(link)) {
-                Document doc = httpGetAndParseHtml(link);
-                parseUrlsFromPageAndStoreIntoDatabase(doc);
-                storeIntoDataBaseIfItIsNewsPage(doc, link);
-                dao.insertProcessedLink(link);
-            }
+        } catch(Exception e) {
+            throw new RuntimeException(e);
         }
 
     }
@@ -77,6 +81,7 @@ public class Crawler {
             return Jsoup.parse(html);
         }
     }
+
     public static boolean isInterestingLink(String link) {
         return (isIndexPage(link) || isNewsPage(link)) && isNotLoginPage(link);
     }

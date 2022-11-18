@@ -1,5 +1,6 @@
 package github.com.yixiangtw;
 
+import java.time.Instant;
 import java.util.Date;
 
 public class News {
@@ -7,8 +8,8 @@ public class News {
     private String title;
     private String content;
     private String url;
-    private Date created_time;
-    private Date modified_time;
+    private Instant createdTime;
+    private Instant modifiedTime;
 
     public News(String title, String content, String url) {
         this.title = title;
@@ -16,6 +17,21 @@ public class News {
         this.url = url;
     }
 
+    public Instant getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Instant createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public Instant getModifiedTime() {
+        return modifiedTime;
+    }
+
+    public void setModifiedTime(Instant modifiedTime) {
+        this.modifiedTime = modifiedTime;
+    }
     public Integer getId() {
         return id;
     }
@@ -48,19 +64,4 @@ public class News {
         this.url = url;
     }
 
-    public Date getCreated_time() {
-        return created_time;
-    }
-
-    public void setCreated_time(Date created_time) {
-        this.created_time = created_time;
-    }
-
-    public Date getModified_time() {
-        return modified_time;
-    }
-
-    public void setModified_time(Date modified_time) {
-        this.modified_time = modified_time;
-    }
 }
