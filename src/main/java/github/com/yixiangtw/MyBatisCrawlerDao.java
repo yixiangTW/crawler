@@ -11,8 +11,9 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MyBatisCrawlerDao implements ClawlerDao{
+public class MyBatisCrawlerDao implements ClawlerDao {
     private SqlSessionFactory sqlSessionFactory;
+
     public MyBatisCrawlerDao() {
         try {
             String resource = "db/mybatis/config.xml";
@@ -28,7 +29,7 @@ public class MyBatisCrawlerDao implements ClawlerDao{
     public synchronized String getNextLinkThenDelete() throws SQLException {
         try (SqlSession session = sqlSessionFactory.openSession(true)) {
             String url = session.selectOne("github.com.yixiangtw.MyMapper.selectNextAvailableLink");
-            if(url != null) {
+            if (url != null) {
                 session.delete("github.com.yixiangtw.MyMapper.deleteLink", url);
             }
             return url;

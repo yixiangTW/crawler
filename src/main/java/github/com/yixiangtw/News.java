@@ -1,7 +1,6 @@
 package github.com.yixiangtw;
 
 import java.time.Instant;
-import java.util.Date;
 
 public class News {
     private Integer id;

@@ -13,16 +13,16 @@ import java.util.List;
 import java.util.Random;
 
 public class MockDataGenerator {
+    private static final Random random = new Random();
     private static void mockData(SqlSessionFactory sqlSessionFactory, int howMany) {
         try (SqlSession session = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
             List<News> currentNews = session.selectList("github.com.yixiangtw.MockMapper.selectNews");
             System.out.println("");
             int count = howMany - currentNews.size();
-            Random random = new Random();
             try {
-                while(count -- > 0) {
+                while (count-- > 0) {
                     News news = currentNews.get(random.nextInt(currentNews.size()));
-                    Instant currentTime = news.getCreatedTime().minusSeconds(random.nextInt(3600*24*365));
+                    Instant currentTime = news.getCreatedTime().minusSeconds(random.nextInt(3600 * 24 * 365));
                     news.setCreatedTime(currentTime);
                     news.setModifiedTime(currentTime);
                     session.insert("github.com.yixiangtw.MockMapper.insertNews", news);
@@ -35,6 +35,7 @@ public class MockDataGenerator {
             }
         }
     }
+
     public static void main(String[] args) {
         SqlSessionFactory sqlSessionFactory;
         try {
