@@ -8,5 +8,6 @@
     </insert>
     <select id="selectNews" resultType="github.com.yixiangtw.News">
         select id, title, content, url, created_time, modified_time from NEWS
+        LIMIT 2000
     </select>
 </mapper>
