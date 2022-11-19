@@ -1,5 +1,6 @@
 package github.com.yixiangtw;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -15,8 +16,9 @@ import java.io.InputStreamReader;
 
 
 public class ElasticsearchEngine {
+    @SuppressFBWarnings("DM_DEFAULT_ENCODING")
     public static void main(String[] args) throws IOException {
-        while(true) {
+        while (true) {
             System.out.println("Please input a search keyword:");
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
             String keyword = bufferedReader.readLine();
@@ -25,6 +27,7 @@ public class ElasticsearchEngine {
         }
 
     }
+
     public static void search(String keyword) {
         try (RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http")))) {
             SearchRequest searchRequest = new SearchRequest("news");
